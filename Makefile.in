@@ -1,10 +1,9 @@
 CCFLAGS =  -Wall -O3 -falign-functions=32 -fomit-frame-pointer $(INCLUDE)
-LDFLAGS =  $(LIB)
 
 all: pstool 
 
 pstool: pstool.o mpirfftw_input.o realfft.o ps_generator.o 
-	$(COMPILER) $(LDFLAGS) $(CCFLAGS) $^ -o $@ 
+	$(COMPILER) $(CCFLAGS) $^ $(LIB) -o $@ 
 
 .cpp.o:
 	$(COMPILER) $(CCFLAGS) -c $<

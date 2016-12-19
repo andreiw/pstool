@@ -1,5 +1,5 @@
 #!/bin/bash
-# Time-stamp: <2005-02-19 16:01:46 andyw>
+# Time-stamp: <2016-12-19 18:10:32 awarkentin>
 # Copyright (C) 2004 Andrey Warkentin
 #
 # This program is free software; you can redistribute it and/or modify
@@ -41,9 +41,10 @@ headers_path="
 
 # Libraries upon which the project depends.
 libraries_to_locate="
+                    mpi
                     rfftw_mpi
-                    fftw_mpi
                     rfftw
+                    fftw_mpi
                     fftw
                     "
 
@@ -118,7 +119,7 @@ echo
 # and something will have been found.
 compiler_paths=
 for compiler_name in $compiler_names; do
-  compiler_paths=$compiler_paths"`which "$compiler_name" 2>/dev/null`";
+  compiler_paths=$compiler_paths" `which "$compiler_name" 2>/dev/null`";
 done
 
 # Check for executableness of entries in compiler_paths. 

@@ -1,4 +1,4 @@
-// Time-stamp: <2005-02-20 01:54:25 andyw>
+// Time-stamp: <2016-12-19 17:54:56 awarkentin>
 // Copyright (C) 2004 Andrey Warkentin
 //
 // This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 
 // System includes.
 #include <cmath>
+#include <cerrno>
+#include <climits>
+#include <unistd.h>
 
 // Local includes.
 #include "realfft.h"

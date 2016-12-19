@@ -1,4 +1,4 @@
-// Time-stamp: <2005-02-20 01:54:54 andyw>
+// Time-stamp: <2016-12-19 17:53:50 awarkentin>
 // Copyright (C) 2004 Andrey Warkentin
 //
 // This program is free software; you can redistribute it and/or modify
@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, write to the Free Software
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+
+// System includes.
+#include <cerrno>
+#include <unistd.h>
 
 // Local includes.
 #include "stl_ext.h"
@@ -84,7 +88,7 @@ MPIRFFTWInput::read_data (RealFFT & transform)
   MPI_File_set_view (infile_opened,
                      transform.how_many_to_be_skipped *
                      sizeof (fftw_real), MPI_DOUBLE, MPI_DOUBLE,
-                     "native", MPI_INFO_NULL);
+                     (char *) "native", MPI_INFO_NULL);
   
   // Read in our data. First we must create a new input_data_array datatype, since
   // the data we read in will not be placed continuously in the input_data_array.

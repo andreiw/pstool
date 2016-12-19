@@ -1,4 +1,4 @@
-// Time-stamp: <2005-02-20 00:42:45 andyw>
+// Time-stamp: <2016-12-19 17:51:32 awarkentin>
 // Copyright (C) 2004 Andrey Warkentin
 //
 // This program is free software; you can redistribute it and/or modify
@@ -22,6 +22,11 @@
 #include <signal.h>
 #include <rfftw_mpi.h>
 #include <exception>
+#include <cerrno>
+#include <cmath>
+#include <unistd.h>
+#include <getopt.h>
+
 
 // If we're compiling with G++ >= 3, include these files - their contents 
 // will be needed in exc_handler to create a more verbose 

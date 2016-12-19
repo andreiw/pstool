@@ -1,4 +1,4 @@
-// Time-stamp: <2005-03-04 22:52:53 andyw>
+// Time-stamp: <2016-12-19 17:55:23 awarkentin>
 // Copyright (C) 2004 Andrey Warkentin
 //
 // This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,9 @@
 
 // System includes.
 #include <cmath>
+#include <cerrno>
+#include <climits>
+#include <unistd.h>
 
 // Local includes.
 #include "stl_ext.h"
