@@ -1,0 +1,1 @@
+For a given signal, pstool calculates a one-sided power spectrum, i.e. the portion of a signal's power falling within given frequency bins. This is done by employing a one-dimensional real-to-complex FFT routine on an MPI cluster.

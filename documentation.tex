@@ -1,0 +1,101 @@
+\documentclass[12pt]{article}
+\begin{document}
+\title{\texttt{pstool} documentation}
+\author{Andrey Warkentin}
+\maketitle
+  
+\section{What is \texttt{pstool?}}
+\texttt{Pstool} computes a one-sided power spectrum of a signal - id est the
+portion of a signal's power falling within given frequency bins, where
+the signal is represented by the input data. The format of the input
+data will be discussed in the ``\emph{Basic use}''
+section. \texttt{pstool} computes the raw magnitudes squared (properly
+scaled to satisfy Parseval's Theorem) by processing the results of a
+one-dimensional real-to-complex FFT routine running in parallel on an 
+MPI\footnote{Message Passing Interface} cluster. Parallel processing 
+of the RFFT algorithm results in performance increases (shorter
+running times) given a large data set to be processed. 
+\section{Building and installing \texttt{pstool}}
+\texttt{pstool} has been developed in a Linux environment with the GNU
+Compiler Collection, and although it should build and run under a SVR4 or BSD
+environment, this has not been tested. \texttt{pstool} has been shown
+to be architecture independent, running both on AMD-64/Linux,
+IA-32/Linux and PowerPC/Linux. An MPI compiler, supporting
+libraries and runtime will need to be 
+installed on the computers where \texttt{pstool} is to be compiled and
+executed. At the time of this writing, \texttt{pstool} is known to
+successfully build and execute using MPICH\footnote{a freely available,
+portable implementation of MPI}. \texttt{pstool} should work fine with
+LAM/MPI and other MPI 
+implementations, however this has not been tested. FFTW\footnote{a C subroutine
+library for computing the discrete Fourier transform} libraries and
+headers will need to be installed on the computers where
+\texttt{pstool} is to be compiled and executed. \texttt{pstool} has
+been developed using the 2.x version of FFTW, due to a lack of
+parallel transforms in version 3.x. At the time of this writing, the
+latest FFTW 2.x release is FFTW 2.1.5. To build \texttt{pstool},
+please execute the \texttt{configure} script in the pstool source
+directory, and follow the on-screen directions. Please run
+\texttt{./configure -h} to see available configuration options. The
+configuration script itself requires the GNU Bourne-Again SHell.
+\section{Basic use}
+To run the tool, some input data is needed. This data represents the
+signal to be analyzed. Depending on how the FFTW library was compiled,
+the input format changes. By default the FFTW library is compiled with
+double precision, thus the data should be stored as a stream of
+IEEE-754 double (64-bit) precision floating-point values. If the FFTW
+library was compiled with single precision, then the data should be
+stored as a stream of IEEE-754 single (32-bit) precision
+floating-point values. The basic usage of \texttt{pstool} is - 
+\\
+\begin{center}
+\texttt{pstool -i input\_file\_name -o output\_file\_name -s sample\_rate}
+\end{center}
+...where \texttt{input\_file\_name} is the name of the file containing
+  the input data to be analyzed, \texttt{output\_file\_name} is the
+  name of the file in which to store the calculated power spectrum,
+  and \texttt{sample\_rate} is the rate (in Hz) at which the signal,
+  represented by the input data, was sampled. The calculated power spectrum is
+  stored in the output file as comma-separated values (CSV), and is in
+  ready form for use in plotting with \texttt{gnuplot} or other tools.
+\section{Advanced use}
+\texttt{pstool} has several other options which may be of
+use in varying contexts. The \texttt{-f rfft\_output\_file\_name}
+option will result in 
+\texttt{pstool} saving the results of the Fourier transform to the
+file specified for future analysis. The \texttt{-m} option will cause
+the FFTW library used by \texttt{pstool} to produce near-optimal RFFTW
+performance\footnote{by default the FFTW library uses a 'reasonable'
+  (for a RISC-style CPU with many registers)
+  plan for calculating the transform} by calculating several
+transforms, measuring their 
+execution time and selecting the best one. By itself the option has
+few uses and will result in longer execution time for
+\texttt{pstool}. However if many power spectra are to be found, then
+coupling this option with the FFTW 
+\emph{wisdom mechanism} will result in shorter execution times for
+\texttt{pstool} in future program runs. The \texttt{-e} and
+\texttt{-i} give access to the 
+FFTW \emph{wisdom mechanism}. The \emph{wisdom 
+mechanism} provides a way of re-using the 'knowledge' created by the
+FFTW library, during it's computation of a transform, in future
+program runs. The \texttt{-e wisdom\_output\_file\_name} option will
+cause \texttt{pstool} to save the FFTW wisdom information created during
+execution of \texttt{pstool} with the \texttt{-m} option. The
+\texttt{-i wisdom\_input\_file\_name} option will 
+cause \texttt{pstool} to import FFTW wisdom information, resulting in
+a likelier shorter execution time. Although the use of the
+\emph{wisdom mechanism} will result in shorter execution times for
+\texttt{pstool}, there are many caveats associated with using it. The
+wisdom information generated by the FFTW library depends heavily upon
+the hardware/system (CPU, memory, virtual memory) configuration. It is
+perfectly 
+safe to use wisdom information generated during the run
+of \texttt{pstool} on  (for example) an IBM RS/6000, in a run of
+\texttt{pstool} on an 
+AMD-64 cluster. However doing so will result in \emph{decreased}
+performance. The general rule is that existing wisdom information
+should not be re-used whenever there occurs a change of environment in
+which it is used. This \emph{does} include recompiles of
+\texttt{pstool} or of the FFTW libraries \texttt{pstool} depends on. 
+\end{document}

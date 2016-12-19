@@ -1,0 +1,247 @@
+#!/bin/bash
+# Time-stamp: <2005-02-19 16:01:46 andyw>
+# Copyright (C) 2004 Andrey Warkentin
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA. 
+
+# The following list contains the name of any 
+# compiler that would work fine.
+compiler_names="
+               mpiCC
+               mpic++
+               mpicpp
+               mpicxx
+               "
+
+# The default installation prefix.
+installation_prefix="/usr/local/"
+
+# Headers upon which the project depends.
+headers_to_locate="
+                  rfftw_mpi.h
+                  "
+
+# And where to look for them.
+headers_path="
+             /usr/include/
+             /usr/local/include/
+             "
+
+# Libraries upon which the project depends.
+libraries_to_locate="
+                    rfftw_mpi
+                    fftw_mpi
+                    rfftw
+                    fftw
+                    "
+
+# And where to look for them.
+libraries_path="
+               /usr/lib/   
+               /usr/local/lib/         
+               "
+
+##################################################################
+########## NO USER SERVICABLE PARTS BEYOND THIS POINT ############
+##################################################################
+
+echo PSTool Makefile configuration utility.
+echo Copyright \(C\) 2005 Andrey Warkentin. Licensed under GPL v2.
+
+fixdot() {
+ echo ${1} | sed -e 's/\./_/g'
+}
+
+# Find the absolute location of this script.
+absolute_path=`cd \`dirname ${0}\` && pwd`
+
+# Yet to encounter *nix systems where libraries aren't named libXXXXX.
+library_prefix="lib"
+
+# We prefer shared objects, with static libraries being the last choice.
+library_postfix="  
+                .so
+                .a            
+                "
+
+# Test for presence of command line options.
+if [[ ${#} != 0 ]]
+then
+  while getopts "hp:I:L:" optarg_option
+  do
+    case ${optarg_option} in
+      h  )           
+          echo Usage: echo ${0} '[-h] [-p <path>] [-I <path>] [-L <path>]'
+          echo Options:
+          echo "        "h - prints out this helpful information.
+          echo "        "p - sets installation prefix '(default is /usr/local/)'.
+          echo "        "I - adds '<path>' to the include search path.
+          echo "        "L - adds '<path>' to the library search path.
+          exit
+          ;;
+      p  ) 
+          installation_prefix=${OPTARG}/
+          ;;
+      I  ) 
+          headers_path=${headers_path}' '${OPTARG}/
+          ;;
+      L  )
+          libraries_path=${libraries_path}' '${OPTARG}/
+          ;;
+      *  ) 
+          echo Invalid option. Run \'${0} -h\' to see usage information.
+          exit
+          ;;
+    esac
+  done
+fi 
+
+echo 
+echo !!!!! This script assumes your compilers simply work, !!!!!
+echo !!!!! and does not test presence of standard headers. !!!!!
+echo 
+
+# Construct paths to the compiler(s) we are looking for. 
+# When we're done, hopefully compiler_paths won't be empty 
+# and something will have been found.
+compiler_paths=
+for compiler_name in $compiler_names; do
+  compiler_paths=$compiler_paths"`which "$compiler_name" 2>/dev/null`";
+done
+
+# Check for executableness of entries in compiler_paths. 
+# First executable entry is the chosen compiler.
+appropriate_compiler=
+echo '1)' Testing for presence of appropriate compiler.
+for compiler_location in ${compiler_paths}; do
+  if [[ -x ${compiler_location} ]]
+  then
+    appropriate_compiler=${compiler_location};
+    break;
+  fi
+done
+if [[ -z ${appropriate_compiler} ]]
+then
+  echo '1)' ABORT: None of the following compilers are in $PATH:
+  for compiler_name in $compiler_names; do
+    echo "1)        "$compiler_name; 
+  done
+  exit
+fi
+
+# Locate required headers.
+echo '2)' Testing for presence of specific required headers.
+for header in ${headers_to_locate}; do
+  for pth in ${headers_path}; do
+    if [[ -e ${pth}${header}  ]]
+    then
+      echo '2)' Found ${header} in ${pth};
+      export $(fixdot ${header})="found";
+      break;    
+    fi
+  done
+done
+for header in ${headers_to_locate}; do
+  name=$(fixdot ${header})
+  if [[ ${!name} != "found" ]]
+  then
+    echo '2)' ABORT: Header \'${header}\' has not been found in:
+    for pth in ${headers_path}; do
+      echo "          "${pth}
+    done
+    echo '2)' Maybe try passing additional include paths with -I\? 
+    exit
+  fi
+done
+
+# Locate required libraries.
+echo '3)' Testing for presence of specific required libraries.
+for library in ${libraries_to_locate}; do
+  for pth in ${libraries_path}; do
+    for postfix in ${library_postfix}; do
+      if [[ -e ${pth}${library_prefix}${library}${postfix}  ]]
+      then
+        echo '3)' Found ${library_prefix}${library}${postfix} in ${pth};
+        export $(fixdot ${library})="found";
+        break; 
+      fi
+    done
+    name=$(fixdot ${library})
+    if [[ ${!name} == "found" ]]
+    then
+      break;
+    fi
+  done
+done
+for library in ${libraries_to_locate}; do
+  name=$(fixdot ${library})
+  if [[ ${!name} != "found" ]]
+  then
+    echo '3)' ABORT: \'${library}\' library has not been found in:
+    for pth in ${libraries_path}; do
+      echo "          "${pth}
+    done
+    echo '3)' Maybe try passing additional include paths with -L\? 
+    exit
+  fi
+done
+
+# Build library path and -lxxx string.
+library_string=
+for pth in ${libraries_path}; do
+  library_string=${library_string}' -L '${pth};
+done
+for library in ${libraries_to_locate}; do
+  library_string=${library_string}' -l'${library};
+done
+
+# Build include path string.
+include_path_string=
+for pth in ${headers_path}; do
+  include_path_string=${include_path_string}' -I '${pth};
+done
+
+# Check that FFTW2 is compiled with double precision.
+echo '4)' Checking FFTW2 configuration.
+echo "
+     #include <rfftw_mpi.h>
+     int main()
+     {
+       return sizeof(fftw_real) == sizeof(double);
+     }
+     " > ./check_fftw.c
+${appropriate_compiler} ./check_fftw.c -o ./check_fftw ${library_string} ${include_path_string}
+./check_fftw
+if [[ ${?} != 1 ]]
+then
+  echo '4)' Sorry, FFTW2 libraries compiled with single-precision support, instead of the '('default')' double-precision support, are not supported.
+  exit
+fi
+rm ./check_fftw*
+echo '4)' FFTW2 configured with double precision '-' great'!'
+
+# Create Makefile.
+echo '5)' Writing out Makefile.
+echo '5)' Compiler will be: ${appropriate_compiler}
+echo '5)' Installation prefix will be: ${installation_prefix}
+echo COMPILER \= ${appropriate_compiler} > Makefile
+echo INSTALL_PREFIX \= ${installation_prefix} >> Makefile
+
+echo LIB \= ${library_string} >> Makefile 
+echo INCLUDE \= ${include_path_string} >> Makefile
+
+# Paste the rest of the Makefile.
+cat ${absolute_path}/Makefile.in >> ${absolute_path}/Makefile
+echo '5)' To build and install please run "'make && make install'".

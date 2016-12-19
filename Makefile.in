@@ -1,0 +1,24 @@
+CCFLAGS =  -Wall -O3 -falign-functions=32 -fomit-frame-pointer $(INCLUDE)
+LDFLAGS =  $(LIB)
+
+all: pstool 
+
+pstool: pstool.o mpirfftw_input.o realfft.o ps_generator.o 
+	$(COMPILER) $(LDFLAGS) $(CCFLAGS) $^ -o $@ 
+
+.cpp.o:
+	$(COMPILER) $(CCFLAGS) -c $<
+
+.PHONY: clean tar install uninstall
+
+install: pstool
+	install pstool $(INSTALL_PREFIX)bin
+
+uninstall:
+	rm -rf $(INSTALL_PREFIX)bin/pstool
+
+clean: 
+	rm -rf pstool *~ *.o 
+
+tar:
+	tar cf ../pstool`date "+%d%m%y%h%m%s"`.tar *	
